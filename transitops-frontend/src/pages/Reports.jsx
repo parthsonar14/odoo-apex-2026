@@ -131,6 +131,8 @@ export function Reports() {
                 
                 return (
                   <TableRow key={v.vehicle_id}>
+                    <TableCell className="font-medium">{v.registration_number}</TableCell>
+                    <TableCell>{v.vehicle_name}</TableCell>
                     <TableCell>{Number(v.totalDistance || 0).toFixed(2)}</TableCell>
                     <TableCell>{Number(v.fuelEfficiency || 0).toFixed(2)} KM/L</TableCell>
                     <TableCell>{formatCurrency(v.operationalCost)}</TableCell>
