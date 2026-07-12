@@ -14,6 +14,8 @@ export function FuelExpense() {
 
   const [fuelLogs, setFuelLogs] = useState([]);
   const [expenses, setExpenses] = useState([]);
+  const [vehiclesList, setVehiclesList] = useState([]);
+  const [tripsList, setTripsList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -38,8 +40,22 @@ export function FuelExpense() {
     }
   };
 
+  const fetchDropdownData = async () => {
+    try {
+      const [vehiclesRes, tripsRes] = await Promise.all([
+        api.get('/vehicles'),
+        api.get('/trips')
+      ]);
+      setVehiclesList(vehiclesRes.data);
+      setTripsList(tripsRes.data);
+    } catch (error) {
+      toast.error('Failed to load vehicles or trips');
+    }
+  };
+
   useEffect(() => {
     fetchData();
+    fetchDropdownData();
   }, []);
 
   const handleFuelSubmit = async (e) => {
@@ -156,11 +172,21 @@ export function FuelExpense() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <input type="text" value={fuelData.vehicle_id} onChange={(e) => setFuelData({...fuelData, vehicle_id: e.target.value})} placeholder="Vehicle ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <select value={fuelData.vehicle_id} onChange={(e) => setFuelData({...fuelData, vehicle_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+                <option value="">Select Vehicle</option>
+                {vehiclesList.map(v => (
+                  <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip</label>
-              <input type="text" value={fuelData.trip_id} onChange={(e) => setFuelData({...fuelData, trip_id: e.target.value})} placeholder="Trip ID (Optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <select value={fuelData.trip_id} onChange={(e) => setFuelData({...fuelData, trip_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="">None</option>
+                {tripsList.map(t => (
+                  <option key={t.id} value={t.id}>{t.trip_number}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Liters</label>
@@ -187,11 +213,21 @@ export function FuelExpense() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <input type="text" value={expenseData.vehicle_id} onChange={(e) => setExpenseData({...expenseData, vehicle_id: e.target.value})} placeholder="Vehicle ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <select value={expenseData.vehicle_id} onChange={(e) => setExpenseData({...expenseData, vehicle_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+                <option value="">Select Vehicle</option>
+                {vehiclesList.map(v => (
+                  <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip</label>
-              <input type="text" value={expenseData.trip_id} onChange={(e) => setExpenseData({...expenseData, trip_id: e.target.value})} placeholder="Trip ID (Optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <select value={expenseData.trip_id} onChange={(e) => setExpenseData({...expenseData, trip_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                <option value="">None</option>
+                {tripsList.map(t => (
+                  <option key={t.id} value={t.id}>{t.trip_number}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Expense Type</label>

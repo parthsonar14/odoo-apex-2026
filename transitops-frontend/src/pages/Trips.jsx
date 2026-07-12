@@ -3,7 +3,7 @@ import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
@@ -12,6 +12,8 @@ import { toast } from 'react-toastify';
 export function Trips() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tripsData, setTripsData] = useState([]);
+  const [availableVehicles, setAvailableVehicles] = useState([]);
+  const [availableDrivers, setAvailableDrivers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
@@ -30,8 +32,22 @@ export function Trips() {
     }
   };
 
+  const fetchDropdownData = async () => {
+    try {
+      const [vehiclesRes, driversRes] = await Promise.all([
+        api.get('/vehicles/available'),
+        api.get('/drivers/available')
+      ]);
+      setAvailableVehicles(vehiclesRes.data);
+      setAvailableDrivers(driversRes.data);
+    } catch (error) {
+      toast.error('Failed to load available vehicles or drivers');
+    }
+  };
+
   useEffect(() => {
     fetchTrips();
+    fetchDropdownData();
   }, []);
 
   const handleChange = (e) => {
@@ -58,6 +74,41 @@ export function Trips() {
       fetchTrips();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to delete trip');
+    }
+  };
+
+  const handleDispatch = async (id) => {
+    if (!window.confirm('Are you sure you want to dispatch this trip?')) return;
+    try {
+      await api.put(`/trips/${id}/dispatch`);
+      toast.success('Trip dispatched successfully!');
+      fetchTrips();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to dispatch trip');
+    }
+  };
+
+  const handleComplete = async (id) => {
+    const endOdometer = window.prompt("Enter End Odometer:");
+    if (endOdometer === null) return;
+    
+    try {
+      await api.put(`/trips/${id}/complete`, { end_odometer: endOdometer });
+      toast.success('Trip completed successfully!');
+      fetchTrips();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to complete trip');
+    }
+  };
+
+  const handleCancel = async (id) => {
+    if (!window.confirm('Are you sure you want to cancel this trip?')) return;
+    try {
+      await api.put(`/trips/${id}/cancel`);
+      toast.success('Trip cancelled successfully!');
+      fetchTrips();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to cancel trip');
     }
   };
 
@@ -122,7 +173,15 @@ export function Trips() {
                 <TableCell>{getStatusBadge(t.trip_status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                    {t.trip_status === 'Draft' && (
+                      <Button variant="ghost" size="sm" onClick={() => handleDispatch(t.id)} className="h-8 w-8 p-0" title="Dispatch Trip"><Truck className="h-4 w-4 text-brand-600" /></Button>
+                    )}
+                    {t.trip_status === 'Dispatched' && (
+                      <Button variant="ghost" size="sm" onClick={() => handleComplete(t.id)} className="h-8 w-8 p-0" title="Complete Trip"><CheckCircle className="h-4 w-4 text-green-600" /></Button>
+                    )}
+                    {(t.trip_status === 'Draft' || t.trip_status === 'Dispatched') && (
+                      <Button variant="ghost" size="sm" onClick={() => handleCancel(t.id)} className="h-8 w-8 p-0" title="Cancel Trip"><XCircle className="h-4 w-4 text-red-600" /></Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
@@ -156,11 +215,21 @@ export function Trips() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <input type="text" name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} placeholder="Vehicle ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <select name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+                <option value="">Select Available Vehicle</option>
+                {availableVehicles.map(v => (
+                  <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Driver</label>
-              <input type="text" name="driver_id" value={formData.driver_id} onChange={handleChange} placeholder="Driver ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <select name="driver_id" value={formData.driver_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+                <option value="">Select Available Driver</option>
+                {availableDrivers.map(d => (
+                  <option key={d.id} value={d.id}>{d.full_name} ({d.license_number})</option>
+                ))}
+              </select>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Source</label>
