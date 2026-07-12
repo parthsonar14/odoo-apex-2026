@@ -1,12 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { createTrip, getTrips, deleteTrip, dispatchTrip, completeTrip, cancelTrip } = require('../controllers/tripController');
+const { createTrip, getTrips, deleteTrip, dispatchTrip, completeTrip, cancelTrip, updateTrip } = require('../controllers/tripController');
 const { protect } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
 router.post('/', createTrip);
 router.get('/', getTrips);
+router.put('/:id', updateTrip);
 router.delete('/:id', deleteTrip);
 
 router.put('/:id/dispatch', dispatchTrip);

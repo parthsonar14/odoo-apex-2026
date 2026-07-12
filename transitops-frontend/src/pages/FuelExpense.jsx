@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
-import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
+import { Calendar, Filter, Plus, FileText, Droplet, Search, Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
 import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 export function FuelExpense() {
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
@@ -17,6 +18,8 @@ export function FuelExpense() {
   const [vehiclesList, setVehiclesList] = useState([]);
   const [tripsList, setTripsList] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingFuelId, setEditingFuelId] = useState(null);
+  const [editingExpenseId, setEditingExpenseId] = useState(null);
   const itemsPerPage = 8;
 
   const [fuelData, setFuelData] = useState({
@@ -61,29 +64,77 @@ export function FuelExpense() {
   const handleFuelSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/fuel', fuelData);
-      toast.success('Fuel log added successfully!');
+      if (editingFuelId) {
+        await api.put(`/fuel/${editingFuelId}`, fuelData);
+        toast.success('Fuel log updated successfully!');
+      } else {
+        await api.post('/fuel', fuelData);
+        toast.success('Fuel log added successfully!');
+      }
       setIsFuelModalOpen(false);
+      setEditingFuelId(null);
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add fuel log');
+      toast.error(error.response?.data?.message || (editingFuelId ? 'Failed to update fuel log' : 'Failed to add fuel log'));
     }
   };
 
   const handleExpenseSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/expenses', expenseData);
-      toast.success('Expense added successfully!');
+      if (editingExpenseId) {
+        await api.put(`/expenses/${editingExpenseId}`, expenseData);
+        toast.success('Expense updated successfully!');
+      } else {
+        await api.post('/expenses', expenseData);
+        toast.success('Expense added successfully!');
+      }
       setIsExpenseModalOpen(false);
+      setEditingExpenseId(null);
       fetchData();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add expense');
+      toast.error(error.response?.data?.message || (editingExpenseId ? 'Failed to update expense' : 'Failed to add expense'));
+    }
+  };
+
+  const handleEdit = (log) => {
+    if (log.isFuel) {
+      setFuelData({
+        vehicle_id: log.vehicle_id,
+        trip_id: log.trip_id || '',
+        liters: log.liters,
+        cost: log.cost,
+        fuel_date: log.fuel_date ? log.fuel_date.split('T')[0] : ''
+      });
+      setEditingFuelId(log.id);
+      setIsFuelModalOpen(true);
+    } else {
+      setExpenseData({
+        vehicle_id: log.vehicle_id,
+        trip_id: log.trip_id || '',
+        expense_type: log.expense_type,
+        amount: log.amount,
+        expense_date: log.expense_date ? log.expense_date.split('T')[0] : '',
+        description: log.description || ''
+      });
+      setEditingExpenseId(log.id);
+      setIsExpenseModalOpen(true);
     }
   };
 
   const handleDelete = async (log) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to delete this record?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    
+    if (!result.isConfirmed) return;
+    
     try {
       if (log.isFuel) {
         await api.delete(`/fuel/${log.id}`);
@@ -112,8 +163,20 @@ export function FuelExpense() {
           <p className="text-slate-500">Track fuel consumption and operational costs.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => setIsExpenseModalOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add Expense</Button>
-          <Button onClick={() => setIsFuelModalOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add Fuel Log</Button>
+          <Button variant="secondary" onClick={() => {
+            setExpenseData({
+              vehicle_id: '', trip_id: '', expense_type: 'Fuel', amount: '', expense_date: '', description: ''
+            });
+            setEditingExpenseId(null);
+            setIsExpenseModalOpen(true);
+          }}><Plus className="mr-2 h-4 w-4" /> Add Expense</Button>
+          <Button onClick={() => {
+            setFuelData({
+              vehicle_id: '', trip_id: '', liters: '', cost: '', fuel_date: ''
+            });
+            setEditingFuelId(null);
+            setIsFuelModalOpen(true);
+          }}><Plus className="mr-2 h-4 w-4" /> Add Fuel Log</Button>
         </div>
       </div>
 
@@ -151,7 +214,7 @@ export function FuelExpense() {
                 <TableCell className="font-medium">{l.displayCost}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(l)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
@@ -167,7 +230,7 @@ export function FuelExpense() {
         />
       </Card>
 
-      <Modal isOpen={isFuelModalOpen} onClose={() => setIsFuelModalOpen(false)} title="Add Fuel Log">
+      <Modal isOpen={isFuelModalOpen} onClose={() => setIsFuelModalOpen(false)} title={editingFuelId ? "Edit Fuel Log" : "Add Fuel Log"}>
         <form className="space-y-4" onSubmit={handleFuelSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -203,12 +266,12 @@ export function FuelExpense() {
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => setIsFuelModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save Fuel Log</Button>
+            <Button type="submit">{editingFuelId ? "Save Changes" : "Save Fuel Log"}</Button>
           </div>
         </form>
       </Modal>
 
-      <Modal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} title="Add Expense">
+      <Modal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} title={editingExpenseId ? "Edit Expense" : "Add Expense"}>
         <form className="space-y-4" onSubmit={handleExpenseSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -254,7 +317,7 @@ export function FuelExpense() {
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => setIsExpenseModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save Expense</Button>
+            <Button type="submit">{editingExpenseId ? "Save Changes" : "Save Expense"}</Button>
           </div>
         </form>
       </Modal>

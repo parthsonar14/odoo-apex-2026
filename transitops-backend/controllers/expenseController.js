@@ -39,3 +39,37 @@ exports.deleteExpense = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.updateExpense = async (req, res) => {
+    const { expense_type, amount, description, expense_date, trip_id } = req.body;
+    try {
+        const [expenses] = await pool.execute('SELECT id FROM Expenses WHERE id = ?', [req.params.id]);
+        if (expenses.length === 0) {
+            return res.status(404).json({ message: 'Expense not found' });
+        }
+
+        const query = `
+            UPDATE Expenses SET 
+                expense_type = COALESCE(?, expense_type),
+                amount = COALESCE(?, amount),
+                description = COALESCE(?, description),
+                expense_date = COALESCE(?, expense_date),
+                trip_id = COALESCE(?, trip_id)
+            WHERE id = ?
+        `;
+
+        await pool.execute(query, [
+            expense_type || null,
+            amount || null,
+            description || null,
+            expense_date || null,
+            trip_id || null,
+            req.params.id
+        ]);
+
+        res.json({ message: 'Expense updated successfully' });
+    } catch (error) {
+        console.error('Error updating expense:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};

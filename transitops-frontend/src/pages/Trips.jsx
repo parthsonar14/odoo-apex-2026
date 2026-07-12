@@ -8,6 +8,7 @@ import { Modal } from '../components/ui/Modal';
 import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 export function Trips() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -15,6 +16,7 @@ export function Trips() {
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [availableDrivers, setAvailableDrivers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingId, setEditingId] = useState(null);
   const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
@@ -57,17 +59,58 @@ export function Trips() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/trips', formData);
-      toast.success('Trip created successfully!');
+      if (editingId) {
+        await api.put(`/trips/${editingId}`, formData);
+        toast.success('Trip updated successfully!');
+      } else {
+        await api.post('/trips', formData);
+        toast.success('Trip created successfully!');
+      }
       setIsModalOpen(false);
+      setEditingId(null);
       fetchTrips();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create trip');
+      toast.error(error.response?.data?.message || (editingId ? 'Failed to update trip' : 'Failed to create trip'));
     }
   };
 
+  const handleEdit = (trip) => {
+    if (trip.trip_status !== 'Draft') {
+      toast.error('Only Draft trips can be edited.');
+      return;
+    }
+    setFormData({
+      trip_number: trip.trip_number,
+      vehicle_id: trip.vehicle_id,
+      driver_id: trip.driver_id,
+      source: trip.source,
+      destination: trip.destination,
+      cargo_weight: trip.cargo_weight,
+      revenue: trip.revenue || '',
+      planned_distance: trip.planned_distance || '',
+      actual_distance: trip.actual_distance || '',
+      start_odometer: trip.start_odometer || '',
+      end_odometer: trip.end_odometer || '',
+      fuel_used: trip.fuel_used || '',
+      dispatch_date: trip.dispatch_date ? trip.dispatch_date.split('.')[0] : '',
+      completion_date: trip.completion_date ? trip.completion_date.split('.')[0] : '',
+      trip_status: trip.trip_status
+    });
+    setEditingId(trip.id);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this trip?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to delete this trip?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.delete(`/trips/${id}`);
       toast.success('Trip deleted successfully');
@@ -78,7 +121,16 @@ export function Trips() {
   };
 
   const handleDispatch = async (id) => {
-    if (!window.confirm('Are you sure you want to dispatch this trip?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to dispatch this trip?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, dispatch it!'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.put(`/trips/${id}/dispatch`);
       toast.success('Trip dispatched successfully!');
@@ -89,8 +141,16 @@ export function Trips() {
   };
 
   const handleComplete = async (id) => {
-    const endOdometer = window.prompt("Enter End Odometer:");
-    if (endOdometer === null) return;
+    const { value: endOdometer } = await Swal.fire({
+      title: 'Complete Trip',
+      input: 'number',
+      inputLabel: 'Enter End Odometer:',
+      inputPlaceholder: 'e.g. 52000',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      confirmButtonText: 'Complete'
+    });
+    if (!endOdometer) return;
     
     try {
       await api.put(`/trips/${id}/complete`, { end_odometer: endOdometer });
@@ -102,7 +162,16 @@ export function Trips() {
   };
 
   const handleCancel = async (id) => {
-    if (!window.confirm('Are you sure you want to cancel this trip?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to cancel this trip?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, cancel it!'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.put(`/trips/${id}/cancel`);
       toast.success('Trip cancelled successfully!');
@@ -131,7 +200,15 @@ export function Trips() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Trips</h2>
           <p className="text-slate-500">Monitor active and past dispatch routes.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}><Plus className="mr-2 h-4 w-4" /> Create Trip</Button>
+        <Button onClick={() => {
+          setFormData({
+            trip_number: '', vehicle_id: '', driver_id: '', source: '', destination: '', cargo_weight: '', 
+            revenue: '', planned_distance: '', actual_distance: '', start_odometer: '', end_odometer: '', 
+            fuel_used: '', dispatch_date: '', completion_date: '', trip_status: 'Draft'
+          });
+          setEditingId(null);
+          setIsModalOpen(true);
+        }}><Plus className="mr-2 h-4 w-4" /> Create Trip</Button>
       </div>
 
       <Card>
@@ -174,6 +251,9 @@ export function Trips() {
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     {t.trip_status === 'Draft' && (
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(t)} className="h-8 w-8 p-0" title="Edit Trip"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                    )}
+                    {t.trip_status === 'Draft' && (
                       <Button variant="ghost" size="sm" onClick={() => handleDispatch(t.id)} className="h-8 w-8 p-0" title="Dispatch Trip"><Truck className="h-4 w-4 text-brand-600" /></Button>
                     )}
                     {t.trip_status === 'Dispatched' && (
@@ -197,7 +277,7 @@ export function Trips() {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create Trip">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Trip" : "Create Trip"}>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -278,7 +358,7 @@ export function Trips() {
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save Trip</Button>
+            <Button type="submit">{editingId ? "Save Changes" : "Save Trip"}</Button>
           </div>
         </form>
       </Modal>

@@ -150,3 +150,46 @@ exports.cancelTrip = async (req, res) => {
         connection.release();
     }
 };
+
+exports.updateTrip = async (req, res) => {
+    const { source, destination, cargo_weight, planned_distance } = req.body;
+    try {
+        const [trips] = await pool.execute('SELECT vehicle_id, trip_status FROM Trips WHERE id = ?', [req.params.id]);
+        if (trips.length === 0) {
+            return res.status(404).json({ message: 'Trip not found' });
+        }
+
+        if (trips[0].trip_status !== 'Draft') {
+            return res.status(400).json({ message: 'Only draft trips can be edited directly, use dispatch/complete/cancel actions instead' });
+        }
+
+        if (cargo_weight) {
+            const [vehicles] = await pool.execute('SELECT max_load_capacity FROM Vehicles WHERE id = ?', [trips[0].vehicle_id]);
+            if (vehicles.length > 0 && Number(cargo_weight) > Number(vehicles[0].max_load_capacity)) {
+                return res.status(400).json({ message: "Cargo weight exceeds vehicle's maximum load capacity" });
+            }
+        }
+
+        const query = `
+            UPDATE Trips SET 
+                source = COALESCE(?, source),
+                destination = COALESCE(?, destination),
+                cargo_weight = COALESCE(?, cargo_weight),
+                planned_distance = COALESCE(?, planned_distance)
+            WHERE id = ?
+        `;
+
+        await pool.execute(query, [
+            source || null,
+            destination || null,
+            cargo_weight || null,
+            planned_distance || null,
+            req.params.id
+        ]);
+
+        res.json({ message: 'Trip updated successfully' });
+    } catch (error) {
+        console.error('Error updating trip:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};

@@ -11,6 +11,7 @@ const maintenanceRoutes = require('./routes/maintenanceRoutes');
 const fuelRoutes = require('./routes/fuelRoutes');
 const expenseRoutes = require('./routes/expenseRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use('/api/maintenance', maintenanceRoutes);
 app.use('/api/fuel', fuelRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/reports', reportsRoutes);
 
 const PORT = process.env.PORT || 5000;
 

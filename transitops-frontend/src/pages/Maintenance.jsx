@@ -8,12 +8,14 @@ import { Modal } from '../components/ui/Modal';
 import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 export function Maintenance() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState([]);
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingId, setEditingId] = useState(null);
   const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
@@ -51,17 +53,50 @@ export function Maintenance() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/maintenance', formData);
-      toast.success('Maintenance record created successfully!');
+      if (editingId) {
+        await api.put(`/maintenance/${editingId}`, formData);
+        toast.success('Maintenance record updated successfully!');
+      } else {
+        await api.post('/maintenance', formData);
+        toast.success('Maintenance record created successfully!');
+      }
       setIsModalOpen(false);
+      setEditingId(null);
       fetchMaintenance();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create record');
+      toast.error(error.response?.data?.message || (editingId ? 'Failed to update record' : 'Failed to create record'));
     }
   };
 
+  const handleEdit = (record) => {
+    if (record.status !== 'Active') {
+      toast.error('Only Active records can be edited.');
+      return;
+    }
+    setFormData({
+      vehicle_id: record.vehicle_id,
+      maintenance_type: record.maintenance_type || '',
+      description: record.description || '',
+      maintenance_cost: record.maintenance_cost || '',
+      start_date: record.start_date ? record.start_date.split('T')[0] : '',
+      end_date: record.end_date ? record.end_date.split('T')[0] : '',
+      status: record.status
+    });
+    setEditingId(record.id);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to delete this record?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.delete(`/maintenance/${id}`);
       toast.success('Record deleted successfully');
@@ -72,7 +107,16 @@ export function Maintenance() {
   };
 
   const handleClose = async (id) => {
-    if (!window.confirm('Are you sure you want to close this maintenance record?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to close this maintenance record?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, close it!'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.put(`/maintenance/${id}/close`);
       toast.success('Maintenance closed successfully!');
@@ -101,7 +145,14 @@ export function Maintenance() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Maintenance</h2>
           <p className="text-slate-500">Track vehicle repairs and service schedules.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add Maintenance Record</Button>
+        <Button onClick={() => {
+          setFormData({
+            vehicle_id: '', maintenance_type: '', description: '', maintenance_cost: '', 
+            start_date: '', end_date: '', status: 'Active'
+          });
+          setEditingId(null);
+          setIsModalOpen(true);
+        }}><Plus className="mr-2 h-4 w-4" /> Add Maintenance Record</Button>
       </div>
 
       <Card>
@@ -141,7 +192,9 @@ export function Maintenance() {
                     {l.status === 'Active' && (
                       <Button variant="ghost" size="sm" onClick={() => handleClose(l.id)} className="h-8 w-8 p-0" title="Close Maintenance"><CheckCircle className="h-4 w-4 text-green-600" /></Button>
                     )}
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                    {l.status === 'Active' && (
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="h-8 w-8 p-0" title="Edit Record"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                    )}
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
@@ -157,7 +210,7 @@ export function Maintenance() {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Maintenance Record">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Maintenance Record" : "Add Maintenance Record"}>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
@@ -199,7 +252,7 @@ export function Maintenance() {
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save Record</Button>
+            <Button type="submit">{editingId ? "Save Changes" : "Save Record"}</Button>
           </div>
         </form>
       </Modal>

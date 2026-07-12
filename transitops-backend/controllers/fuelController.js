@@ -39,3 +39,35 @@ exports.deleteFuelLog = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+exports.updateFuelLog = async (req, res) => {
+    const { liters, cost, fuel_date, trip_id } = req.body;
+    try {
+        const [logs] = await pool.execute('SELECT id FROM Fuel_Logs WHERE id = ?', [req.params.id]);
+        if (logs.length === 0) {
+            return res.status(404).json({ message: 'Fuel log not found' });
+        }
+
+        const query = `
+            UPDATE Fuel_Logs SET 
+                liters = COALESCE(?, liters),
+                cost = COALESCE(?, cost),
+                fuel_date = COALESCE(?, fuel_date),
+                trip_id = COALESCE(?, trip_id)
+            WHERE id = ?
+        `;
+
+        await pool.execute(query, [
+            liters || null,
+            cost || null,
+            fuel_date || null,
+            trip_id || null,
+            req.params.id
+        ]);
+
+        res.json({ message: 'Fuel log updated successfully' });
+    } catch (error) {
+        console.error('Error updating fuel log:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};

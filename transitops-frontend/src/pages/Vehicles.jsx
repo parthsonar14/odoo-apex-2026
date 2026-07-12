@@ -8,11 +8,13 @@ import { Modal } from '../components/ui/Modal';
 import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
+import Swal from 'sweetalert2';
 
 export function Vehicles() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [vehiclesData, setVehiclesData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [editingId, setEditingId] = useState(null);
   const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
@@ -40,17 +42,48 @@ export function Vehicles() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/vehicles', formData);
-      toast.success('Vehicle added successfully!');
+      if (editingId) {
+        await api.put(`/vehicles/${editingId}`, formData);
+        toast.success('Vehicle updated successfully!');
+      } else {
+        await api.post('/vehicles', formData);
+        toast.success('Vehicle added successfully!');
+      }
       setIsModalOpen(false);
+      setEditingId(null);
       fetchVehicles();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to add vehicle');
+      toast.error(error.response?.data?.message || (editingId ? 'Failed to update vehicle' : 'Failed to add vehicle'));
     }
   };
 
+  const handleEdit = (vehicle) => {
+    setFormData({
+      registration_number: vehicle.registration_number,
+      vehicle_name: vehicle.vehicle_name,
+      vehicle_model: vehicle.vehicle_model || '',
+      vehicle_type: vehicle.vehicle_type,
+      max_load_capacity: vehicle.max_load_capacity,
+      odometer: vehicle.odometer || '0',
+      acquisition_cost: vehicle.acquisition_cost || '',
+      region: vehicle.region || '',
+      status: vehicle.status
+    });
+    setEditingId(vehicle.id);
+    setIsModalOpen(true);
+  };
+
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: 'Are you sure you want to delete this vehicle?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    });
+    if (!result.isConfirmed) return;
     try {
       await api.delete(`/vehicles/${id}`);
       toast.success('Vehicle deleted successfully');
@@ -79,7 +112,14 @@ export function Vehicles() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Vehicles</h2>
           <p className="text-slate-500">Manage your fleet inventory and statuses.</p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)}><Plus className="mr-2 h-4 w-4" /> Add Vehicle</Button>
+        <Button onClick={() => { 
+          setFormData({
+            registration_number: '', vehicle_name: '', vehicle_model: '', vehicle_type: 'Truck',
+            max_load_capacity: '', odometer: '0', acquisition_cost: '', region: '', status: 'Available'
+          });
+          setEditingId(null);
+          setIsModalOpen(true); 
+        }}><Plus className="mr-2 h-4 w-4" /> Add Vehicle</Button>
       </div>
 
       <Card>
@@ -114,7 +154,7 @@ export function Vehicles() {
                 <TableCell>{getStatusBadge(v.status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleEdit(v)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
                     <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
@@ -130,7 +170,7 @@ export function Vehicles() {
         />
       </Card>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Vehicle">
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingId ? "Edit Vehicle" : "Add Vehicle"}>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
@@ -183,7 +223,7 @@ export function Vehicles() {
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
             <Button type="button" variant="ghost" onClick={() => setIsModalOpen(false)}>Cancel</Button>
-            <Button type="submit">Save Vehicle</Button>
+            <Button type="submit">{editingId ? "Save Changes" : "Save Vehicle"}</Button>
           </div>
         </form>
       </Modal>

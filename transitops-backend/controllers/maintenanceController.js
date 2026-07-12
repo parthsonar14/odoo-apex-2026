@@ -79,3 +79,39 @@ exports.closeMaintenance = async (req, res) => {
         connection.release();
     }
 };
+
+exports.updateMaintenance = async (req, res) => {
+    const { maintenance_type, description, maintenance_cost, start_date } = req.body;
+    try {
+        const [logs] = await pool.execute('SELECT status FROM Maintenance_Logs WHERE id = ?', [req.params.id]);
+        if (logs.length === 0) {
+            return res.status(404).json({ message: 'Maintenance record not found' });
+        }
+
+        if (logs[0].status === 'Completed') {
+            return res.status(400).json({ message: 'Completed maintenance records cannot be edited' });
+        }
+
+        const query = `
+            UPDATE Maintenance_Logs SET 
+                maintenance_type = COALESCE(?, maintenance_type),
+                description = COALESCE(?, description),
+                maintenance_cost = COALESCE(?, maintenance_cost),
+                start_date = COALESCE(?, start_date)
+            WHERE id = ?
+        `;
+
+        await pool.execute(query, [
+            maintenance_type || null,
+            description || null,
+            maintenance_cost || null,
+            start_date || null,
+            req.params.id
+        ]);
+
+        res.json({ message: 'Maintenance updated successfully' });
+    } catch (error) {
+        console.error('Error updating maintenance:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
