@@ -60,7 +60,7 @@ const login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, role_id: user.role_id },
+            { id: user.id, role_id: user.role_id, permissions: user.permissions },
             process.env.JWT_SECRET,
             { expiresIn: '30d' }
         );
@@ -71,7 +71,8 @@ const login = async (req, res) => {
                 id: user.id,
                 full_name: user.full_name,
                 email: user.email,
-                role_id: user.role_id
+                role_id: user.role_id,
+                permissions: user.permissions
             }
         });
     } catch (error) {

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import { LayoutDashboard, Truck, Users, Map, Wrench, Fuel, BarChart3, LogOut, ChevronRightCircle, Sun, Moon } from 'lucide-react';
+import { LayoutDashboard, Truck, Users, Map, Wrench, Fuel, BarChart3, LogOut, ChevronRightCircle, Sun, Moon, Settings as SettingsIcon, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { cn } from '../../lib/utils';
@@ -60,7 +60,13 @@ export function Sidebar() {
       )}
       <div className="flex flex-1 flex-col overflow-y-auto overflow-x-hidden">
         <nav className="flex-1 space-y-1 px-3 py-4">
-          {navigation.map((item) => (
+          {navigation.filter(item => {
+            if (user?.role_id === 1) return true;
+            if (!user?.permissions) return false;
+            let permKey = item.name;
+            if (item.name === 'Fuel & Expenses') permKey = 'FuelExpenses';
+            return user.permissions[permKey] === true;
+          }).map((item) => (
             <NavLink
               key={item.name}
               to={item.href}
@@ -80,6 +86,36 @@ export function Sidebar() {
         </nav>
       </div>
       <div className="border-t border-slate-800 p-4 space-y-2">
+        {user && user.role_id === 1 && (
+          <NavLink
+            to="/users"
+            className={({ isActive }) =>
+              cn(
+                isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+                'group flex w-full items-center rounded-md py-2 text-sm font-medium transition-colors',
+                isCollapsed ? "justify-center px-0" : "px-3"
+              )
+            }
+            title={isCollapsed ? "Team Access" : undefined}
+          >
+            <Shield className={cn("h-5 w-5 flex-shrink-0", !isCollapsed && "mr-3")} aria-hidden="true" />
+            {!isCollapsed && <span>Team Access</span>}
+          </NavLink>
+        )}
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            cn(
+              isActive ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white',
+              'group flex w-full items-center rounded-md py-2 text-sm font-medium transition-colors',
+              isCollapsed ? "justify-center px-0" : "px-3"
+            )
+          }
+          title={isCollapsed ? "Settings" : undefined}
+        >
+          <SettingsIcon className={cn("h-5 w-5 flex-shrink-0", !isCollapsed && "mr-3")} aria-hidden="true" />
+          {!isCollapsed && <span>Settings</span>}
+        </NavLink>
         <button
           onClick={toggleTheme}
           className={cn(

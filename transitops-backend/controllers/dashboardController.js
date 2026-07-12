@@ -34,10 +34,25 @@ exports.getDashboardKPIs = async (req, res) => {
         const [vehiclesInMaintenance] = await pool.execute(`SELECT COUNT(*) as count FROM Vehicles WHERE ${inShopWhere}`, status ? [...params, status] : params);
         const [totalVehicles] = await pool.execute(`SELECT COUNT(*) as count FROM Vehicles WHERE ${totalWhere}`, totalParams);
         
-        const [activeTrips] = await pool.execute("SELECT COUNT(*) as count FROM Trips WHERE trip_status = 'Dispatched'");
-        const [pendingTrips] = await pool.execute("SELECT COUNT(*) as count FROM Trips WHERE trip_status = 'Draft'");
+        let tripJoin = '';
+        let driverJoin = '';
+        if (vehicle_type || region || status) {
+            tripJoin = 'JOIN Vehicles v ON Trips.vehicle_id = v.id';
+            driverJoin = 'JOIN Trips t ON Drivers.id = t.driver_id JOIN Vehicles v ON t.vehicle_id = v.id';
+        }
         
-        const [driversOnDuty] = await pool.execute("SELECT COUNT(*) as count FROM Drivers WHERE status = 'On Trip'");
+        let tripsWhere = tripJoin ? 'WHERE 1=1' : 'WHERE 1=1';
+        let driversWhere = driverJoin ? 'WHERE Drivers.status = "On Trip"' : 'WHERE status = "On Trip"';
+        
+        const extraParams = [];
+        if (vehicle_type) { tripsWhere += ' AND v.vehicle_type = ?'; driversWhere += ' AND v.vehicle_type = ?'; extraParams.push(vehicle_type); }
+        if (region) { tripsWhere += ' AND v.region = ?'; driversWhere += ' AND v.region = ?'; extraParams.push(region); }
+        if (status) { tripsWhere += ' AND v.status = ?'; driversWhere += ' AND v.status = ?'; extraParams.push(status); }
+
+        const [activeTrips] = await pool.execute(`SELECT COUNT(DISTINCT Trips.id) as count FROM Trips ${tripJoin} ${tripsWhere} AND Trips.trip_status = 'Dispatched'`, extraParams);
+        const [pendingTrips] = await pool.execute(`SELECT COUNT(DISTINCT Trips.id) as count FROM Trips ${tripJoin} ${tripsWhere} AND Trips.trip_status = 'Draft'`, extraParams);
+        
+        const [driversOnDuty] = await pool.execute(`SELECT COUNT(DISTINCT Drivers.id) as count FROM Drivers ${driverJoin} ${driversWhere}`, extraParams);
 
         const totalVehiclesCount = totalVehicles[0].count;
         const activeVehiclesCount = activeVehicles[0].count;

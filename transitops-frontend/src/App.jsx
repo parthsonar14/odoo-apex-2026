@@ -14,6 +14,8 @@ import { Trips } from './pages/Trips';
 import { Maintenance } from './pages/Maintenance';
 import { FuelExpense } from './pages/FuelExpense';
 import { Reports } from './pages/Reports';
+import { Settings } from './pages/Settings';
+import { Users } from './pages/Users';
 import './index.css';
 
 function App() {
@@ -46,6 +48,8 @@ function App() {
         <Route path="/maintenance" element={<ProtectedRoute><AppLayout><Maintenance /></AppLayout></ProtectedRoute>} />
         <Route path="/expenses" element={<ProtectedRoute><AppLayout><FuelExpense /></AppLayout></ProtectedRoute>} />
         <Route path="/reports" element={<ProtectedRoute><AppLayout><Reports /></AppLayout></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
+        <Route path="/users" element={<ProtectedRoute><AppLayout><Users /></AppLayout></ProtectedRoute>} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
