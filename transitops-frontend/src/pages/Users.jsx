@@ -83,21 +83,21 @@ export function Users() {
         <CardHeader>
           <CardTitle>Team Members</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Table>
+        <CardContent className="overflow-x-auto">
+          <Table className="min-w-[1100px]">
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Current Role</TableHead>
-                <TableHead>Change Role</TableHead>
-                <TableHead className="text-center">Dashboard</TableHead>
-                <TableHead className="text-center">Vehicles</TableHead>
-                <TableHead className="text-center">Drivers</TableHead>
-                <TableHead className="text-center">Trips</TableHead>
-                <TableHead className="text-center">Maintenance</TableHead>
-                <TableHead className="text-center">Fuel & Exp</TableHead>
-                <TableHead className="text-center">Reports</TableHead>
+                <TableHead className="min-w-[150px]">Name</TableHead>
+                <TableHead className="min-w-[150px]">Email</TableHead>
+                <TableHead className="min-w-[120px]">Current Role</TableHead>
+                <TableHead className="min-w-[150px]">Change Role</TableHead>
+                <TableHead className="text-center min-w-[100px]">Dashboard</TableHead>
+                <TableHead className="text-center min-w-[100px]">Vehicles</TableHead>
+                <TableHead className="text-center min-w-[100px]">Drivers</TableHead>
+                <TableHead className="text-center min-w-[100px]">Trips</TableHead>
+                <TableHead className="text-center min-w-[100px]">Maintenance</TableHead>
+                <TableHead className="text-center min-w-[100px]">Fuel & Exp</TableHead>
+                <TableHead className="text-center min-w-[100px]">Reports</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
