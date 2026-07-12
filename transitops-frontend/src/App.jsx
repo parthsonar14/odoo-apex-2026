@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
+import { ProtectedRoute } from './components/layout/ProtectedRoute';
 import { Login } from './pages/Login';
 import { Dashboard } from './pages/Dashboard';
 import { Vehicles } from './pages/Vehicles';
@@ -18,13 +19,13 @@ function App() {
         <Route path="/login" element={<Login />} />
         
         {/* Protected Routes Wrapper */}
-        <Route path="/" element={<AppLayout><Dashboard /></AppLayout>} />
-        <Route path="/vehicles" element={<AppLayout><Vehicles /></AppLayout>} />
-        <Route path="/drivers" element={<AppLayout><Drivers /></AppLayout>} />
-        <Route path="/trips" element={<AppLayout><Trips /></AppLayout>} />
-        <Route path="/maintenance" element={<AppLayout><Maintenance /></AppLayout>} />
-        <Route path="/expenses" element={<AppLayout><FuelExpense /></AppLayout>} />
-        <Route path="/reports" element={<AppLayout><Reports /></AppLayout>} />
+        <Route path="/" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+        <Route path="/vehicles" element={<ProtectedRoute><AppLayout><Vehicles /></AppLayout></ProtectedRoute>} />
+        <Route path="/drivers" element={<ProtectedRoute><AppLayout><Drivers /></AppLayout></ProtectedRoute>} />
+        <Route path="/trips" element={<ProtectedRoute><AppLayout><Trips /></AppLayout></ProtectedRoute>} />
+        <Route path="/maintenance" element={<ProtectedRoute><AppLayout><Maintenance /></AppLayout></ProtectedRoute>} />
+        <Route path="/expenses" element={<ProtectedRoute><AppLayout><FuelExpense /></AppLayout></ProtectedRoute>} />
+        <Route path="/reports" element={<ProtectedRoute><AppLayout><Reports /></AppLayout></ProtectedRoute>} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
