@@ -8,8 +8,10 @@ import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { useAuth } from '../context/AuthContext';
 
 export function FuelExpense() {
+  const { user } = useAuth();
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
@@ -162,22 +164,24 @@ export function FuelExpense() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Fuel & Expenses</h2>
           <p className="text-slate-500">Track fuel consumption and operational costs.</p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => {
-            setExpenseData({
-              vehicle_id: '', trip_id: '', expense_type: 'Fuel', amount: '', expense_date: '', description: ''
-            });
-            setEditingExpenseId(null);
-            setIsExpenseModalOpen(true);
-          }}><Plus className="mr-2 h-4 w-4" /> Add Expense</Button>
-          <Button onClick={() => {
-            setFuelData({
-              vehicle_id: '', trip_id: '', liters: '', cost: '', fuel_date: ''
-            });
-            setEditingFuelId(null);
-            setIsFuelModalOpen(true);
-          }}><Plus className="mr-2 h-4 w-4" /> Add Fuel Log</Button>
-        </div>
+        {[1, 4].includes(user?.role_id) && (
+          <div className="flex gap-2">
+            <Button variant="secondary" onClick={() => {
+              setExpenseData({
+                vehicle_id: '', trip_id: '', expense_type: 'Fuel', amount: '', expense_date: '', description: ''
+              });
+              setEditingExpenseId(null);
+              setIsExpenseModalOpen(true);
+            }}><Plus className="mr-2 h-4 w-4" /> Add Expense</Button>
+            <Button onClick={() => {
+              setFuelData({
+                vehicle_id: '', trip_id: '', liters: '', cost: '', fuel_date: ''
+              });
+              setEditingFuelId(null);
+              setIsFuelModalOpen(true);
+            }}><Plus className="mr-2 h-4 w-4" /> Add Fuel Log</Button>
+          </div>
+        )}
       </div>
 
       <Card>
@@ -213,10 +217,12 @@ export function FuelExpense() {
                 <TableCell>{l.displayLiters}</TableCell>
                 <TableCell className="font-medium">{l.displayCost}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(l)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                  </div>
+                  {[1, 4].includes(user?.role_id) && (
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(l)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

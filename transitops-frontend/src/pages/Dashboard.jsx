@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../components/ui/Card';
-import { Truck, AlertTriangle, Map, Users, TrendingUp } from 'lucide-react';
+import { Button } from '../components/ui/Button';
+import { Truck, AlertTriangle, Map, Users, TrendingUp, Filter, X } from 'lucide-react';
 import api from '../api/axiosConfig';
 
 export function Dashboard() {
@@ -16,10 +17,34 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [filterType, setFilterType] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterRegion, setFilterRegion] = useState('');
+  const [regionsList, setRegionsList] = useState([]);
+
+  useEffect(() => {
+    const fetchRegions = async () => {
+      try {
+        const response = await api.get('/vehicles');
+        const uniqueRegions = [...new Set(response.data.map(v => v.region).filter(Boolean))];
+        setRegionsList(uniqueRegions);
+      } catch (err) {
+        console.error('Failed to load regions');
+      }
+    };
+    fetchRegions();
+  }, []);
+
   useEffect(() => {
     const fetchKPIs = async () => {
       try {
-        const response = await api.get('/dashboard/kpis');
+        setLoading(true);
+        const params = new URLSearchParams();
+        if (filterType) params.append('vehicle_type', filterType);
+        if (filterStatus) params.append('status', filterStatus);
+        if (filterRegion) params.append('region', filterRegion);
+        
+        const response = await api.get(`/dashboard/kpis?${params.toString()}`);
         setKpis(response.data);
         setError(null);
       } catch (err) {
@@ -29,7 +54,13 @@ export function Dashboard() {
       }
     };
     fetchKPIs();
-  }, []);
+  }, [filterType, filterStatus, filterRegion]);
+
+  const handleClearFilters = () => {
+    setFilterType('');
+    setFilterStatus('');
+    setFilterRegion('');
+  };
 
   const stats = [
     { name: 'Active Vehicles', value: kpis.activeVehicles, icon: Truck, color: 'text-brand-600' },
@@ -40,9 +71,42 @@ export function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h2>
-        <p className="text-slate-500">Overview of your fleet operations and key metrics.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h2>
+          <p className="text-slate-500">Overview of your fleet operations and key metrics.</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2 text-sm text-slate-500 mr-2">
+            <Filter className="h-4 w-4" /> Filters
+          </div>
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">All Types</option>
+            <option value="Truck">Truck</option>
+            <option value="Van">Van</option>
+            <option value="Mini Truck">Mini Truck</option>
+            <option value="Bike">Bike</option>
+            <option value="Other">Other</option>
+          </select>
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">All Statuses</option>
+            <option value="Available">Available</option>
+            <option value="On Trip">On Trip</option>
+            <option value="In Shop">In Shop</option>
+            <option value="Retired">Retired</option>
+          </select>
+          <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="">All Regions</option>
+            {regionsList.map(region => (
+              <option key={region} value={region}>{region}</option>
+            ))}
+          </select>
+          {(filterType || filterStatus || filterRegion) && (
+            <Button variant="ghost" size="sm" onClick={handleClearFilters} className="text-slate-500 hover:text-slate-700">
+              <X className="h-4 w-4 mr-1" /> Clear
+            </Button>
+          )}
+        </div>
       </div>
 
       {error && (

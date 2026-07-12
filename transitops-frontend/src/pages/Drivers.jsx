@@ -9,12 +9,15 @@ import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { useAuth } from '../context/AuthContext';
 
 export function Drivers() {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [driversData, setDriversData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
@@ -100,7 +103,12 @@ export function Drivers() {
     }
   };
 
-  const paginatedDrivers = driversData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredDrivers = driversData.filter(d => 
+    (d.full_name && d.full_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (d.license_number && d.license_number.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const paginatedDrivers = filteredDrivers.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -109,14 +117,16 @@ export function Drivers() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Drivers</h2>
           <p className="text-slate-500">Manage your driver staff and compliance.</p>
         </div>
-        <Button onClick={() => {
-          setFormData({
-            full_name: '', license_number: '', license_category: '', license_expiry: '',
-            contact_number: '', safety_score: '100.00', status: 'Available'
-          });
-          setEditingId(null);
-          setIsModalOpen(true);
-        }}><Plus className="mr-2 h-4 w-4" /> Add Driver</Button>
+        {user?.role_id === 1 && (
+          <Button onClick={() => {
+            setFormData({
+              full_name: '', license_number: '', license_category: '', license_expiry: '',
+              contact_number: '', safety_score: '100.00', status: 'Available'
+            });
+            setEditingId(null);
+            setIsModalOpen(true);
+          }}><Plus className="mr-2 h-4 w-4" /> Add Driver</Button>
+        )}
       </div>
 
       <Card>
@@ -125,7 +135,12 @@ export function Drivers() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search drivers..."
+              placeholder="Search drivers by name or license..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500"
             />
           </div>
@@ -152,18 +167,27 @@ export function Drivers() {
                 <TableCell>{d.safety_score}</TableCell>
                 <TableCell>{getStatusBadge(d.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(d)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                  </div>
+                  {user?.role_id === 1 && (
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(d)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
+            {filteredDrivers.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No results found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
         <Pagination 
           currentPage={currentPage} 
-          totalItems={driversData.length} 
+          totalItems={filteredDrivers.length} 
           itemsPerPage={itemsPerPage} 
           onPageChange={setCurrentPage} 
         />

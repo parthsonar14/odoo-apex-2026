@@ -2,10 +2,37 @@ const pool = require('../config/db');
 
 exports.getDashboardKPIs = async (req, res) => {
     try {
-        const [activeVehicles] = await pool.execute("SELECT COUNT(*) as count FROM Vehicles WHERE status = 'On Trip'");
-        const [availableVehicles] = await pool.execute("SELECT COUNT(*) as count FROM Vehicles WHERE status = 'Available'");
-        const [vehiclesInMaintenance] = await pool.execute("SELECT COUNT(*) as count FROM Vehicles WHERE status = 'In Shop'");
-        const [totalVehicles] = await pool.execute("SELECT COUNT(*) as count FROM Vehicles");
+        const { vehicle_type, status, region } = req.query;
+        let baseWhere = '1=1';
+        const params = [];
+
+        if (vehicle_type) {
+            baseWhere += ' AND vehicle_type = ?';
+            params.push(vehicle_type);
+        }
+        if (region) {
+            baseWhere += ' AND region = ?';
+            params.push(region);
+        }
+        
+        let onTripWhere = baseWhere + " AND status = 'On Trip'";
+        let availableWhere = baseWhere + " AND status = 'Available'";
+        let inShopWhere = baseWhere + " AND status = 'In Shop'";
+        let totalWhere = baseWhere;
+        const totalParams = [...params];
+
+        if (status) {
+            onTripWhere += ' AND status = ?';
+            availableWhere += ' AND status = ?';
+            inShopWhere += ' AND status = ?';
+            totalWhere += ' AND status = ?';
+            totalParams.push(status);
+        }
+
+        const [activeVehicles] = await pool.execute(`SELECT COUNT(*) as count FROM Vehicles WHERE ${onTripWhere}`, status ? [...params, status] : params);
+        const [availableVehiclesResult] = await pool.execute(`SELECT COUNT(*) as count FROM Vehicles WHERE ${availableWhere}`, status ? [...params, status] : params);
+        const [vehiclesInMaintenance] = await pool.execute(`SELECT COUNT(*) as count FROM Vehicles WHERE ${inShopWhere}`, status ? [...params, status] : params);
+        const [totalVehicles] = await pool.execute(`SELECT COUNT(*) as count FROM Vehicles WHERE ${totalWhere}`, totalParams);
         
         const [activeTrips] = await pool.execute("SELECT COUNT(*) as count FROM Trips WHERE trip_status = 'Dispatched'");
         const [pendingTrips] = await pool.execute("SELECT COUNT(*) as count FROM Trips WHERE trip_status = 'Draft'");
@@ -18,7 +45,7 @@ exports.getDashboardKPIs = async (req, res) => {
 
         res.json({
             activeVehicles: activeVehiclesCount,
-            availableVehicles: availableVehicles[0].count,
+            availableVehicles: availableVehiclesResult[0].count,
             vehiclesInMaintenance: vehiclesInMaintenance[0].count,
             activeTrips: activeTrips[0].count,
             pendingTrips: pendingTrips[0].count,

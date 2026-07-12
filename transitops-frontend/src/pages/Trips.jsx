@@ -9,14 +9,17 @@ import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { useAuth } from '../context/AuthContext';
 
 export function Trips() {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tripsData, setTripsData] = useState([]);
   const [availableVehicles, setAvailableVehicles] = useState([]);
   const [availableDrivers, setAvailableDrivers] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
@@ -191,7 +194,13 @@ export function Trips() {
     }
   };
 
-  const paginatedTrips = tripsData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredTrips = tripsData.filter(t => 
+    (t.trip_number && t.trip_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (t.source && t.source.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (t.destination && t.destination.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const paginatedTrips = filteredTrips.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -200,15 +209,17 @@ export function Trips() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Trips</h2>
           <p className="text-slate-500">Monitor active and past dispatch routes.</p>
         </div>
-        <Button onClick={() => {
-          setFormData({
-            trip_number: '', vehicle_id: '', driver_id: '', source: '', destination: '', cargo_weight: '', 
-            revenue: '', planned_distance: '', actual_distance: '', start_odometer: '', end_odometer: '', 
-            fuel_used: '', dispatch_date: '', completion_date: '', trip_status: 'Draft'
-          });
-          setEditingId(null);
-          setIsModalOpen(true);
-        }}><Plus className="mr-2 h-4 w-4" /> Create Trip</Button>
+        {[1, 2].includes(user?.role_id) && (
+          <Button onClick={() => {
+            setFormData({
+              trip_number: '', vehicle_id: '', driver_id: '', source: '', destination: '', cargo_weight: '', 
+              revenue: '', planned_distance: '', actual_distance: '', start_odometer: '', end_odometer: '', 
+              fuel_used: '', dispatch_date: '', completion_date: '', trip_status: 'Draft'
+            });
+            setEditingId(null);
+            setIsModalOpen(true);
+          }}><Plus className="mr-2 h-4 w-4" /> Create Trip</Button>
+        )}
       </div>
 
       <Card>
@@ -217,7 +228,12 @@ export function Trips() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search trips..."
+              placeholder="Search trips by ID, source, or destination..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500"
             />
           </div>
@@ -249,29 +265,38 @@ export function Trips() {
                 <TableCell>{t.cargo_weight}</TableCell>
                 <TableCell>{getStatusBadge(t.trip_status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {t.trip_status === 'Draft' && (
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(t)} className="h-8 w-8 p-0" title="Edit Trip"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    )}
-                    {t.trip_status === 'Draft' && (
-                      <Button variant="ghost" size="sm" onClick={() => handleDispatch(t.id)} className="h-8 w-8 p-0" title="Dispatch Trip"><Truck className="h-4 w-4 text-brand-600" /></Button>
-                    )}
-                    {t.trip_status === 'Dispatched' && (
-                      <Button variant="ghost" size="sm" onClick={() => handleComplete(t.id)} className="h-8 w-8 p-0" title="Complete Trip"><CheckCircle className="h-4 w-4 text-green-600" /></Button>
-                    )}
-                    {(t.trip_status === 'Draft' || t.trip_status === 'Dispatched') && (
-                      <Button variant="ghost" size="sm" onClick={() => handleCancel(t.id)} className="h-8 w-8 p-0" title="Cancel Trip"><XCircle className="h-4 w-4 text-red-600" /></Button>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                  </div>
+                  {[1, 2].includes(user?.role_id) && (
+                    <div className="flex justify-end gap-2">
+                      {t.trip_status === 'Draft' && (
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(t)} className="h-8 w-8 p-0" title="Edit Trip"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                      )}
+                      {t.trip_status === 'Draft' && (
+                        <Button variant="ghost" size="sm" onClick={() => handleDispatch(t.id)} className="h-8 w-8 p-0" title="Dispatch Trip"><Truck className="h-4 w-4 text-brand-600" /></Button>
+                      )}
+                      {t.trip_status === 'Dispatched' && (
+                        <Button variant="ghost" size="sm" onClick={() => handleComplete(t.id)} className="h-8 w-8 p-0" title="Complete Trip"><CheckCircle className="h-4 w-4 text-green-600" /></Button>
+                      )}
+                      {(t.trip_status === 'Draft' || t.trip_status === 'Dispatched') && (
+                        <Button variant="ghost" size="sm" onClick={() => handleCancel(t.id)} className="h-8 w-8 p-0" title="Cancel Trip"><XCircle className="h-4 w-4 text-red-600" /></Button>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(t.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
+            {filteredTrips.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={7} className="h-24 text-center">
+                  No results found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
         <Pagination 
           currentPage={currentPage} 
-          totalItems={tripsData.length} 
+          totalItems={filteredTrips.length} 
           itemsPerPage={itemsPerPage} 
           onPageChange={setCurrentPage} 
         />

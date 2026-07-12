@@ -9,8 +9,10 @@ import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { useAuth } from '../context/AuthContext';
 
 export function Maintenance() {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [maintenanceData, setMaintenanceData] = useState([]);
   const [availableVehicles, setAvailableVehicles] = useState([]);
@@ -145,14 +147,16 @@ export function Maintenance() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Maintenance</h2>
           <p className="text-slate-500">Track vehicle repairs and service schedules.</p>
         </div>
-        <Button onClick={() => {
-          setFormData({
-            vehicle_id: '', maintenance_type: '', description: '', maintenance_cost: '', 
-            start_date: '', end_date: '', status: 'Active'
-          });
-          setEditingId(null);
-          setIsModalOpen(true);
-        }}><Plus className="mr-2 h-4 w-4" /> Add Maintenance Record</Button>
+        {user?.role_id === 1 && (
+          <Button onClick={() => {
+            setFormData({
+              vehicle_id: '', maintenance_type: '', description: '', maintenance_cost: '', 
+              start_date: '', end_date: '', status: 'Active'
+            });
+            setEditingId(null);
+            setIsModalOpen(true);
+          }}><Plus className="mr-2 h-4 w-4" /> Add Maintenance Record</Button>
+        )}
       </div>
 
       <Card>
@@ -188,15 +192,17 @@ export function Maintenance() {
                 <TableCell>{l.maintenance_cost}</TableCell>
                 <TableCell>{getStatusBadge(l.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    {l.status === 'Active' && (
-                      <Button variant="ghost" size="sm" onClick={() => handleClose(l.id)} className="h-8 w-8 p-0" title="Close Maintenance"><CheckCircle className="h-4 w-4 text-green-600" /></Button>
-                    )}
-                    {l.status === 'Active' && (
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="h-8 w-8 p-0" title="Edit Record"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    )}
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                  </div>
+                  {user?.role_id === 1 && (
+                    <div className="flex justify-end gap-2">
+                      {l.status === 'Active' && (
+                        <Button variant="ghost" size="sm" onClick={() => handleClose(l.id)} className="h-8 w-8 p-0" title="Close Maintenance"><CheckCircle className="h-4 w-4 text-green-600" /></Button>
+                      )}
+                      {l.status === 'Active' && (
+                        <Button variant="ghost" size="sm" onClick={() => handleEdit(l)} className="h-8 w-8 p-0" title="Edit Record"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                      )}
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

@@ -9,12 +9,15 @@ import { Pagination } from '../components/ui/Pagination';
 import api from '../api/axiosConfig';
 import { toast } from 'react-toastify';
 import Swal from 'sweetalert2';
+import { useAuth } from '../context/AuthContext';
 
 export function Vehicles() {
+  const { user } = useAuth();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [vehiclesData, setVehiclesData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [editingId, setEditingId] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 8;
 
   const [formData, setFormData] = useState({
@@ -103,7 +106,12 @@ export function Vehicles() {
     }
   };
 
-  const paginatedVehicles = vehiclesData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const filteredVehicles = vehiclesData.filter(v => 
+    (v.registration_number && v.registration_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (v.vehicle_name && v.vehicle_name.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  const paginatedVehicles = filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -112,14 +120,16 @@ export function Vehicles() {
           <h2 className="text-2xl font-bold tracking-tight text-slate-900">Vehicles</h2>
           <p className="text-slate-500">Manage your fleet inventory and statuses.</p>
         </div>
-        <Button onClick={() => { 
-          setFormData({
-            registration_number: '', vehicle_name: '', vehicle_model: '', vehicle_type: 'Truck',
-            max_load_capacity: '', odometer: '0', acquisition_cost: '', region: '', status: 'Available'
-          });
-          setEditingId(null);
-          setIsModalOpen(true); 
-        }}><Plus className="mr-2 h-4 w-4" /> Add Vehicle</Button>
+        {user?.role_id === 1 && (
+          <Button onClick={() => { 
+            setFormData({
+              registration_number: '', vehicle_name: '', vehicle_model: '', vehicle_type: 'Truck',
+              max_load_capacity: '', odometer: '0', acquisition_cost: '', region: '', status: 'Available'
+            });
+            setEditingId(null);
+            setIsModalOpen(true); 
+          }}><Plus className="mr-2 h-4 w-4" /> Add Vehicle</Button>
+        )}
       </div>
 
       <Card>
@@ -128,7 +138,12 @@ export function Vehicles() {
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
             <input
               type="text"
-              placeholder="Search vehicles..."
+              placeholder="Search vehicles by registration or name..."
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
               className="flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500"
             />
           </div>
@@ -153,18 +168,27 @@ export function Vehicles() {
                 <TableCell>{v.max_load_capacity}</TableCell>
                 <TableCell>{getStatusBadge(v.status)}</TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(v)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
-                  </div>
+                  {user?.role_id === 1 && (
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(v)} className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
+            {filteredVehicles.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={6} className="h-24 text-center">
+                  No results found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
         <Pagination 
           currentPage={currentPage} 
-          totalItems={vehiclesData.length} 
+          totalItems={filteredVehicles.length} 
           itemsPerPage={itemsPerPage} 
           onPageChange={setCurrentPage} 
         />
