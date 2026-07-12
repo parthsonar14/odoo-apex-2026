@@ -71,15 +71,15 @@ export function Reports() {
   ];
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500">Loading reports...</div>;
+    return <div className="p-8 text-center text-slate-500 dark:text-slate-400">Loading reports...</div>;
   }
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Reports & Analytics</h2>
-          <p className="text-slate-500">Insights into your fleet's performance and ROI.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Reports & Analytics</h2>
+          <p className="text-slate-500 dark:text-slate-400">Insights into your fleet's performance and ROI.</p>
         </div>
         <Button variant="secondary" onClick={handleExportCSV}><Download className="mr-2 h-4 w-4" /> Export CSV</Button>
       </div>
@@ -93,11 +93,11 @@ export function Reports() {
       <div className="grid gap-4 md:grid-cols-3">
         {metrics.map((m) => (
           <Card key={m.title}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-slate-500">{m.title}</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400">{m.title}</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-slate-900">{m.value}</div>
+              <div className="text-3xl font-bold text-slate-900 dark:text-white">{m.value}</div>
             </CardContent>
           </Card>
         ))}
@@ -124,15 +124,13 @@ export function Reports() {
               {vehicleSummary.map((v) => {
                 const isZeroAcq = v.vehicleROI === null || v.vehicleROI === undefined;
                 const roiValue = isZeroAcq ? 0 : v.vehicleROI * 100;
-                let roiColor = "text-slate-900";
+                let roiColor = "text-slate-900 dark:text-white";
                 if (!isZeroAcq) {
-                  roiColor = roiValue > 0 ? "text-green-600" : (roiValue < 0 ? "text-red-600" : "text-slate-900");
+                  roiColor = roiValue > 0 ? "text-green-600" : (roiValue < 0 ? "text-red-600" : "text-slate-900 dark:text-white");
                 }
                 
                 return (
                   <TableRow key={v.vehicle_id}>
-                    <TableCell className="font-medium">{v.registration_number}</TableCell>
-                    <TableCell>{v.vehicle_name}</TableCell>
                     <TableCell>{Number(v.totalDistance || 0).toFixed(2)}</TableCell>
                     <TableCell>{Number(v.fuelEfficiency || 0).toFixed(2)} KM/L</TableCell>
                     <TableCell>{formatCurrency(v.operationalCost)}</TableCell>

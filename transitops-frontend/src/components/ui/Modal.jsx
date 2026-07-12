@@ -13,10 +13,10 @@ export function Modal({ isOpen, onClose, title, children }) {
       />
       
       {/* Modal Content */}
-      <div className="relative w-full max-w-lg rounded-xl bg-white shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+      <div className="relative w-full max-w-lg rounded-xl bg-white dark:bg-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-4 bg-slate-50">
-          <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 px-6 py-4 bg-slate-50 dark:bg-slate-900/50">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{title}</h3>
           <button
             onClick={onClose}
             className="rounded-full p-1.5 text-slate-400 hover:bg-slate-200 hover:text-slate-600 transition-colors"

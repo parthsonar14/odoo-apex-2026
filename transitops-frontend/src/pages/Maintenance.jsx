@@ -144,8 +144,8 @@ export function Maintenance() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Maintenance</h2>
-          <p className="text-slate-500">Track vehicle repairs and service schedules.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Maintenance</h2>
+          <p className="text-slate-500 dark:text-slate-400">Track vehicle repairs and service schedules.</p>
         </div>
         {user?.role_id === 1 && (
           <Button onClick={() => {
@@ -161,8 +161,8 @@ export function Maintenance() {
 
       <Card>
         <div className="p-4 border-b border-slate-200">
-          <div className="relative w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search logs..."
@@ -221,7 +221,7 @@ export function Maintenance() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="">Select Available Vehicle</option>
                 {availableVehicles.map(v => (
                   <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
@@ -230,27 +230,27 @@ export function Maintenance() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Maintenance Type</label>
-              <input type="text" name="maintenance_type" value={formData.maintenance_type} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="maintenance_type" value={formData.maintenance_type} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Maintenance Cost</label>
-              <input type="number" step="0.01" name="maintenance_cost" value={formData.maintenance_cost} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="maintenance_cost" value={formData.maintenance_cost} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Description</label>
-              <textarea name="description" value={formData.description} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
+              <textarea name="description" value={formData.description} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Start Date</label>
-              <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">End Date</label>
-              <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Status</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="Active">Active</option>
                 <option value="Completed">Completed</option>
               </select>

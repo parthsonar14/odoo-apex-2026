@@ -206,8 +206,8 @@ export function Trips() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Trips</h2>
-          <p className="text-slate-500">Monitor active and past dispatch routes.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Trips</h2>
+          <p className="text-slate-500 dark:text-slate-400">Monitor active and past dispatch routes.</p>
         </div>
         {[1, 2].includes(user?.role_id) && (
           <Button onClick={() => {
@@ -224,8 +224,8 @@ export function Trips() {
 
       <Card>
         <div className="p-4 border-b border-slate-200">
-          <div className="relative w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search trips by ID, source, or destination..."
@@ -258,8 +258,8 @@ export function Trips() {
                 <TableCell>{t.destination}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-medium text-slate-900">Vehicle: {t.vehicle_id}</span>
-                    <span className="text-xs text-slate-500">Driver: {t.driver_id}</span>
+                    <span className="font-medium text-slate-900 dark:text-white">Vehicle: {t.vehicle_id}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">Driver: {t.driver_id}</span>
                   </div>
                 </TableCell>
                 <TableCell>{t.cargo_weight}</TableCell>
@@ -307,11 +307,11 @@ export function Trips() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip Number</label>
-              <input type="text" name="trip_number" value={formData.trip_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="trip_number" value={formData.trip_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip Status</label>
-              <select name="trip_status" value={formData.trip_status} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select name="trip_status" value={formData.trip_status} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="Draft">Draft</option>
                 <option value="Dispatched">Dispatched</option>
                 <option value="Completed">Completed</option>
@@ -320,7 +320,7 @@ export function Trips() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="">Select Available Vehicle</option>
                 {availableVehicles.map(v => (
                   <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
@@ -329,7 +329,7 @@ export function Trips() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Driver</label>
-              <select name="driver_id" value={formData.driver_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select name="driver_id" value={formData.driver_id} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="">Select Available Driver</option>
                 {availableDrivers.map(d => (
                   <option key={d.id} value={d.id}>{d.full_name} ({d.license_number})</option>
@@ -338,47 +338,47 @@ export function Trips() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Source</label>
-              <input type="text" name="source" value={formData.source} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="source" value={formData.source} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Destination</label>
-              <input type="text" name="destination" value={formData.destination} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="destination" value={formData.destination} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Cargo Weight</label>
-              <input type="number" step="0.01" name="cargo_weight" value={formData.cargo_weight} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" name="cargo_weight" value={formData.cargo_weight} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Revenue</label>
-              <input type="number" step="0.01" name="revenue" value={formData.revenue} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="revenue" value={formData.revenue} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Planned Distance</label>
-              <input type="number" step="0.01" name="planned_distance" value={formData.planned_distance} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="planned_distance" value={formData.planned_distance} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Actual Distance</label>
-              <input type="number" step="0.01" name="actual_distance" value={formData.actual_distance} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="actual_distance" value={formData.actual_distance} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Start Odometer</label>
-              <input type="number" step="0.01" name="start_odometer" value={formData.start_odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="start_odometer" value={formData.start_odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">End Odometer</label>
-              <input type="number" step="0.01" name="end_odometer" value={formData.end_odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="end_odometer" value={formData.end_odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Fuel Used (Liters)</label>
-              <input type="number" step="0.01" name="fuel_used" value={formData.fuel_used} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="fuel_used" value={formData.fuel_used} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Dispatch Date</label>
-              <input type="datetime-local" name="dispatch_date" value={formData.dispatch_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="datetime-local" name="dispatch_date" value={formData.dispatch_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Completion Date</label>
-              <input type="datetime-local" name="completion_date" value={formData.completion_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="datetime-local" name="completion_date" value={formData.completion_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">

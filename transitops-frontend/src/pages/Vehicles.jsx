@@ -117,8 +117,8 @@ export function Vehicles() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Vehicles</h2>
-          <p className="text-slate-500">Manage your fleet inventory and statuses.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Vehicles</h2>
+          <p className="text-slate-500 dark:text-slate-400">Manage your fleet inventory and statuses.</p>
         </div>
         {user?.role_id === 1 && (
           <Button onClick={() => { 
@@ -133,9 +133,9 @@ export function Vehicles() {
       </div>
 
       <Card>
-        <div className="p-4 border-b border-slate-200">
-          <div className="relative w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+        <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search vehicles by registration or name..."
@@ -144,7 +144,7 @@ export function Vehicles() {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              className="flex h-9 w-full rounded-md border border-slate-300 bg-transparent px-3 py-1 pl-9 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-500"
+              className="pl-9 pr-4 py-2 w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
             />
           </div>
         </div>
@@ -199,19 +199,19 @@ export function Vehicles() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Registration No.</label>
-              <input type="text" name="registration_number" value={formData.registration_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="registration_number" value={formData.registration_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle Name</label>
-              <input type="text" name="vehicle_name" value={formData.vehicle_name} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="vehicle_name" value={formData.vehicle_name} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Model</label>
-              <input type="text" name="vehicle_model" value={formData.vehicle_model} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="vehicle_model" value={formData.vehicle_model} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Type</label>
-              <select name="vehicle_type" value={formData.vehicle_type} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select name="vehicle_type" value={formData.vehicle_type} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="Truck">Truck</option>
                 <option value="Van">Van</option>
                 <option value="Mini Truck">Mini Truck</option>
@@ -221,23 +221,23 @@ export function Vehicles() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Max Load Capacity</label>
-              <input type="number" step="0.01" name="max_load_capacity" value={formData.max_load_capacity} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" name="max_load_capacity" value={formData.max_load_capacity} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Odometer</label>
-              <input type="number" step="0.01" name="odometer" value={formData.odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="odometer" value={formData.odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Acquisition Cost</label>
-              <input type="number" step="0.01" name="acquisition_cost" value={formData.acquisition_cost} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="acquisition_cost" value={formData.acquisition_cost} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Region</label>
-              <input type="text" name="region" value={formData.region} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="region" value={formData.region} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Status</label>
-              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="Available">Available</option>
                 <option value="On Trip">On Trip</option>
                 <option value="In Shop">In Shop</option>

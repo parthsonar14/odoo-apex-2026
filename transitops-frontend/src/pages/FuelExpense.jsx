@@ -161,8 +161,8 @@ export function FuelExpense() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Fuel & Expenses</h2>
-          <p className="text-slate-500">Track fuel consumption and operational costs.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Fuel & Expenses</h2>
+          <p className="text-slate-500 dark:text-slate-400">Track fuel consumption and operational costs.</p>
         </div>
         {[1, 4].includes(user?.role_id) && (
           <div className="flex gap-2">
@@ -186,8 +186,8 @@ export function FuelExpense() {
 
       <Card>
         <div className="p-4 border-b border-slate-200">
-          <div className="relative w-72">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500" />
+          <div className="relative">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-500 dark:text-slate-400" />
             <input
               type="text"
               placeholder="Search records..."
@@ -241,7 +241,7 @@ export function FuelExpense() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select value={fuelData.vehicle_id} onChange={(e) => setFuelData({...fuelData, vehicle_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select value={fuelData.vehicle_id} onChange={(e) => setFuelData({...fuelData, vehicle_id: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="">Select Vehicle</option>
                 {vehiclesList.map(v => (
                   <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
@@ -250,7 +250,7 @@ export function FuelExpense() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip</label>
-              <select value={fuelData.trip_id} onChange={(e) => setFuelData({...fuelData, trip_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select value={fuelData.trip_id} onChange={(e) => setFuelData({...fuelData, trip_id: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">None</option>
                 {tripsList.map(t => (
                   <option key={t.id} value={t.id}>{t.trip_number}</option>
@@ -259,15 +259,15 @@ export function FuelExpense() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Liters</label>
-              <input type="number" step="0.01" value={fuelData.liters} onChange={(e) => setFuelData({...fuelData, liters: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" value={fuelData.liters} onChange={(e) => setFuelData({...fuelData, liters: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Cost</label>
-              <input type="number" step="0.01" value={fuelData.cost} onChange={(e) => setFuelData({...fuelData, cost: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" value={fuelData.cost} onChange={(e) => setFuelData({...fuelData, cost: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Fuel Date</label>
-              <input type="date" value={fuelData.fuel_date} onChange={(e) => setFuelData({...fuelData, fuel_date: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="date" value={fuelData.fuel_date} onChange={(e) => setFuelData({...fuelData, fuel_date: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
@@ -282,7 +282,7 @@ export function FuelExpense() {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select value={expenseData.vehicle_id} onChange={(e) => setExpenseData({...expenseData, vehicle_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select value={expenseData.vehicle_id} onChange={(e) => setExpenseData({...expenseData, vehicle_id: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="">Select Vehicle</option>
                 {vehiclesList.map(v => (
                   <option key={v.id} value={v.id}>{v.registration_number} - {v.vehicle_name}</option>
@@ -291,7 +291,7 @@ export function FuelExpense() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip</label>
-              <select value={expenseData.trip_id} onChange={(e) => setExpenseData({...expenseData, trip_id: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select value={expenseData.trip_id} onChange={(e) => setExpenseData({...expenseData, trip_id: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="">None</option>
                 {tripsList.map(t => (
                   <option key={t.id} value={t.id}>{t.trip_number}</option>
@@ -300,7 +300,7 @@ export function FuelExpense() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Expense Type</label>
-              <select value={expenseData.expense_type} onChange={(e) => setExpenseData({...expenseData, expense_type: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select value={expenseData.expense_type} onChange={(e) => setExpenseData({...expenseData, expense_type: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="Fuel">Fuel</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="Toll">Toll</option>
@@ -310,15 +310,15 @@ export function FuelExpense() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Amount</label>
-              <input type="number" step="0.01" value={expenseData.amount} onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" value={expenseData.amount} onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Expense Date</label>
-              <input type="date" value={expenseData.expense_date} onChange={(e) => setExpenseData({...expenseData, expense_date: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="date" value={expenseData.expense_date} onChange={(e) => setExpenseData({...expenseData, expense_date: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Description</label>
-              <textarea value={expenseData.description} onChange={(e) => setExpenseData({...expenseData, description: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
+              <textarea value={expenseData.description} onChange={(e) => setExpenseData({...expenseData, description: e.target.value})} className="w-full rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">

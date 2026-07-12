@@ -73,14 +73,14 @@ export function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">Dashboard</h2>
-          <p className="text-slate-500">Overview of your fleet operations and key metrics.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Dashboard</h2>
+          <p className="text-slate-500 dark:text-slate-400">Overview of your fleet operations and key metrics.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2 text-sm text-slate-500 mr-2">
             <Filter className="h-4 w-4" /> Filters
           </div>
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
             <option value="">All Types</option>
             <option value="Truck">Truck</option>
             <option value="Van">Van</option>
@@ -88,14 +88,14 @@ export function Dashboard() {
             <option value="Bike">Bike</option>
             <option value="Other">Other</option>
           </select>
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
             <option value="">All Statuses</option>
             <option value="Available">Available</option>
             <option value="On Trip">On Trip</option>
             <option value="In Shop">In Shop</option>
             <option value="Retired">Retired</option>
           </select>
-          <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+          <select value={filterRegion} onChange={(e) => setFilterRegion(e.target.value)} className="rounded-md border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
             <option value="">All Regions</option>
             {regionsList.map(region => (
               <option key={region} value={region}>{region}</option>
@@ -126,9 +126,9 @@ export function Dashboard() {
             </CardHeader>
             <CardContent>
               {loading ? (
-                <div className="h-8 w-16 bg-slate-200 animate-pulse rounded-md mt-1" />
+                <div className="h-8 w-16 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md mt-1" />
               ) : (
-                <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+                <div className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</div>
               )}
             </CardContent>
           </Card>
@@ -141,9 +141,9 @@ export function Dashboard() {
             <CardTitle>Fleet Utilization</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <div className="h-[300px] w-full flex items-center justify-center bg-slate-50 rounded-md border border-slate-100">
+            <div className="h-[300px] w-full flex items-center justify-center bg-slate-50 dark:bg-slate-800/50 rounded-md border border-slate-100 dark:border-slate-800">
               {loading ? (
-                <div className="h-16 w-32 bg-slate-200 animate-pulse rounded-md" />
+                <div className="h-16 w-32 bg-slate-200 dark:bg-slate-700 animate-pulse rounded-md" />
               ) : (
                 <div className="text-center space-y-2">
                   <div className="text-5xl font-bold text-brand-600">{kpis.fleetUtilization}%</div>

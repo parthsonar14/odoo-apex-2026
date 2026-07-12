@@ -10,7 +10,7 @@ export function Table({ className, ...props }) {
 }
 
 export function TableHeader({ className, ...props }) {
-  return <thead className={cn("[&_tr]:border-b border-slate-200", className)} {...props} />;
+  return <thead className={cn("[&_tr]:border-b border-slate-200 dark:border-slate-800", className)} {...props} />;
 }
 
 export function TableBody({ className, ...props }) {
@@ -20,7 +20,7 @@ export function TableBody({ className, ...props }) {
 export function TableRow({ className, ...props }) {
   return (
     <tr
-      className={cn("border-b border-slate-200 transition-colors hover:bg-slate-50/50 data-[state=selected]:bg-slate-100", className)}
+      className={cn("border-b border-slate-200 dark:border-slate-800 transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/50 data-[state=selected]:bg-slate-100 dark:data-[state=selected]:bg-slate-800", className)}
       {...props}
     />
   );
@@ -29,7 +29,7 @@ export function TableRow({ className, ...props }) {
 export function TableHead({ className, ...props }) {
   return (
     <th
-      className={cn("h-12 px-4 text-left align-middle font-medium text-slate-500 [&:has([role=checkbox])]:pr-0", className)}
+      className={cn("h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400 [&:has([role=checkbox])]:pr-0", className)}
       {...props}
     />
   );
