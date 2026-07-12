@@ -1,20 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
-
-const vehicles = [
-  { id: 'V-101', name: 'Volvo FH16', type: 'Heavy Truck', status: 'Available', capacity: '30 Tons' },
-  { id: 'V-102', name: 'Tata Signa', type: 'Medium Truck', status: 'On Trip', capacity: '15 Tons' },
-  { id: 'V-103', name: 'Mahindra Bolero', type: 'Light Van', status: 'In Shop', capacity: '1.5 Tons' },
-  { id: 'V-104', name: 'Ashok Leyland', type: 'Heavy Truck', status: 'Retired', capacity: '25 Tons' },
-];
+import { Pagination } from '../components/ui/Pagination';
+import api from '../api/axiosConfig';
+import { toast } from 'react-toastify';
 
 export function Vehicles() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [vehiclesData, setVehiclesData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const [formData, setFormData] = useState({
+    registration_number: '', vehicle_name: '', vehicle_model: '', vehicle_type: 'Truck',
+    max_load_capacity: '', odometer: '0', acquisition_cost: '', region: '', status: 'Available'
+  });
+
+  const fetchVehicles = async () => {
+    try {
+      const response = await api.get('/vehicles');
+      setVehiclesData(response.data);
+    } catch (error) {
+      toast.error('Failed to load vehicles');
+    }
+  };
+
+  useEffect(() => {
+    fetchVehicles();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/vehicles', formData);
+      toast.success('Vehicle added successfully!');
+      setIsModalOpen(false);
+      fetchVehicles();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add vehicle');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this vehicle?')) return;
+    try {
+      await api.delete(`/vehicles/${id}`);
+      toast.success('Vehicle deleted successfully');
+      fetchVehicles();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete vehicle');
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -25,6 +69,8 @@ export function Vehicles() {
       default: return <Badge>{status}</Badge>;
     }
   };
+
+  const paginatedVehicles = vehiclesData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -59,43 +105,49 @@ export function Vehicles() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {vehicles.map((v) => (
+            {paginatedVehicles.map((v) => (
               <TableRow key={v.id}>
-                <TableCell className="font-medium">{v.id}</TableCell>
-                <TableCell>{v.name}</TableCell>
-                <TableCell>{v.type}</TableCell>
-                <TableCell>{v.capacity}</TableCell>
+                <TableCell className="font-medium">{v.registration_number}</TableCell>
+                <TableCell>{v.vehicle_name}</TableCell>
+                <TableCell>{v.vehicle_type}</TableCell>
+                <TableCell>{v.max_load_capacity}</TableCell>
                 <TableCell>{getStatusBadge(v.status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(v.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <Pagination 
+          currentPage={currentPage} 
+          totalItems={vehiclesData.length} 
+          itemsPerPage={itemsPerPage} 
+          onPageChange={setCurrentPage} 
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Vehicle">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Registration No.</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="registration_number" value={formData.registration_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle Name</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="vehicle_name" value={formData.vehicle_name} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Model</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="vehicle_model" value={formData.vehicle_model} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Type</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select name="vehicle_type" value={formData.vehicle_type} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="Truck">Truck</option>
                 <option value="Van">Van</option>
                 <option value="Mini Truck">Mini Truck</option>
@@ -105,23 +157,23 @@ export function Vehicles() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Max Load Capacity</label>
-              <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" name="max_load_capacity" value={formData.max_load_capacity} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Odometer</label>
-              <input type="number" step="0.01" defaultValue="0" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="odometer" value={formData.odometer} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Acquisition Cost</label>
-              <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="acquisition_cost" value={formData.acquisition_cost} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Region</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="region" value={formData.region} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Status</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="Available">Available</option>
                 <option value="On Trip">On Trip</option>
                 <option value="In Shop">In Shop</option>

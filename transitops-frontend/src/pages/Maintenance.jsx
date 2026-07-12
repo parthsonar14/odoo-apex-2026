@@ -1,19 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
-
-const logs = [
-  { id: 'M-1001', vehicle: 'V-102 (Tata Signa)', type: 'Routine Service', date: '2026-06-15', cost: '₹5,000', status: 'Completed' },
-  { id: 'M-1002', vehicle: 'V-103 (Mahindra Bolero)', type: 'Brake Replacement', date: '2026-07-10', cost: '₹12,500', status: 'In Progress' },
-  { id: 'M-1003', vehicle: 'V-101 (Volvo FH16)', type: 'Oil Change', date: '2026-07-20', cost: '₹8,200', status: 'Scheduled' },
-];
+import { Pagination } from '../components/ui/Pagination';
+import api from '../api/axiosConfig';
+import { toast } from 'react-toastify';
 
 export function Maintenance() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [maintenanceData, setMaintenanceData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const [formData, setFormData] = useState({
+    vehicle_id: '', maintenance_type: '', description: '', maintenance_cost: '', 
+    start_date: '', end_date: '', status: 'Active'
+  });
+
+  const fetchMaintenance = async () => {
+    try {
+      const response = await api.get('/maintenance');
+      setMaintenanceData(response.data);
+    } catch (error) {
+      toast.error('Failed to load maintenance logs');
+    }
+  };
+
+  useEffect(() => {
+    fetchMaintenance();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/maintenance', formData);
+      toast.success('Maintenance record created successfully!');
+      setIsModalOpen(false);
+      fetchMaintenance();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to create record');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    try {
+      await api.delete(`/maintenance/${id}`);
+      toast.success('Record deleted successfully');
+      fetchMaintenance();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete record');
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -23,6 +68,8 @@ export function Maintenance() {
       default: return <Badge>{status}</Badge>;
     }
   };
+
+  const paginatedLogs = maintenanceData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -58,58 +105,62 @@ export function Maintenance() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {logs.map((l) => (
+            {paginatedLogs.map((l) => (
               <TableRow key={l.id}>
                 <TableCell className="font-medium">{l.id}</TableCell>
-                <TableCell>{l.vehicle}</TableCell>
-                <TableCell>{l.type}</TableCell>
-                <TableCell>{l.date}</TableCell>
-                <TableCell>{l.cost}</TableCell>
+                <TableCell>{l.vehicle_id}</TableCell>
+                <TableCell>{l.maintenance_type}</TableCell>
+                <TableCell>{l.start_date}</TableCell>
+                <TableCell>{l.maintenance_cost}</TableCell>
                 <TableCell>{getStatusBadge(l.status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(l.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <Pagination 
+          currentPage={currentPage} 
+          totalItems={maintenanceData.length} 
+          itemsPerPage={itemsPerPage} 
+          onPageChange={setCurrentPage} 
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Maintenance Record">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
-                <option value="">Select Vehicle</option>
-              </select>
+              <input type="text" name="vehicle_id" value={formData.vehicle_id} onChange={handleChange} placeholder="Vehicle ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Maintenance Type</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="maintenance_type" value={formData.maintenance_type} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Maintenance Cost</label>
-              <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="maintenance_cost" value={formData.maintenance_cost} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Description</label>
-              <textarea className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
+              <textarea name="description" value={formData.description} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Start Date</label>
-              <input type="date" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="date" name="start_date" value={formData.start_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">End Date</label>
-              <input type="date" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="date" name="end_date" value={formData.end_date} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Status</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="Active">Active</option>
                 <option value="Completed">Completed</option>
               </select>

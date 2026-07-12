@@ -1,19 +1,92 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
-
-const logs = [
-  { id: 'F-1001', vehicle: 'V-102', date: '2026-07-11', liters: '45 L', cost: '₹4,050', type: 'Fuel' },
-  { id: 'E-1001', vehicle: 'V-101', date: '2026-07-10', liters: '-', cost: '₹850', type: 'Toll Tax' },
-  { id: 'F-1002', vehicle: 'V-103', date: '2026-07-09', liters: '25 L', cost: '₹2,250', type: 'Fuel' },
-];
+import { Pagination } from '../components/ui/Pagination';
+import api from '../api/axiosConfig';
+import { toast } from 'react-toastify';
 
 export function FuelExpense() {
   const [isFuelModalOpen, setIsFuelModalOpen] = useState(false);
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+
+  const [fuelLogs, setFuelLogs] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const [fuelData, setFuelData] = useState({
+    vehicle_id: '', trip_id: '', liters: '', cost: '', fuel_date: ''
+  });
+
+  const [expenseData, setExpenseData] = useState({
+    vehicle_id: '', trip_id: '', expense_type: 'Fuel', amount: '', expense_date: '', description: ''
+  });
+
+  const fetchData = async () => {
+    try {
+      const [fuelRes, expenseRes] = await Promise.all([
+        api.get('/fuel'),
+        api.get('/expenses')
+      ]);
+      setFuelLogs(fuelRes.data);
+      setExpenses(expenseRes.data);
+    } catch (error) {
+      toast.error('Failed to load records');
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleFuelSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/fuel', fuelData);
+      toast.success('Fuel log added successfully!');
+      setIsFuelModalOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add fuel log');
+    }
+  };
+
+  const handleExpenseSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/expenses', expenseData);
+      toast.success('Expense added successfully!');
+      setIsExpenseModalOpen(false);
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add expense');
+    }
+  };
+
+  const handleDelete = async (log) => {
+    if (!window.confirm('Are you sure you want to delete this record?')) return;
+    try {
+      if (log.isFuel) {
+        await api.delete(`/fuel/${log.id}`);
+      } else {
+        await api.delete(`/expenses/${log.id}`);
+      }
+      toast.success('Record deleted successfully');
+      fetchData();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete record');
+    }
+  };
+
+  const combinedLogs = [
+    ...fuelLogs.map(f => ({ ...f, isFuel: true, displayType: 'Fuel', displayDate: f.fuel_date, displayCost: f.cost, displayLiters: f.liters })),
+    ...expenses.map(e => ({ ...e, isFuel: false, displayType: e.expense_type, displayDate: e.expense_date, displayCost: e.amount, displayLiters: '-' }))
+  ].sort((a, b) => new Date(b.displayDate || 0) - new Date(a.displayDate || 0));
+
+  const paginatedLogs = combinedLogs.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -52,52 +125,54 @@ export function FuelExpense() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {logs.map((l) => (
-              <TableRow key={l.id}>
-                <TableCell className="font-medium">{l.id}</TableCell>
-                <TableCell>{l.vehicle}</TableCell>
-                <TableCell>{l.type}</TableCell>
-                <TableCell>{l.date}</TableCell>
-                <TableCell>{l.liters}</TableCell>
-                <TableCell className="font-medium">{l.cost}</TableCell>
+            {paginatedLogs.map((l, index) => (
+              <TableRow key={`${l.isFuel ? 'F' : 'E'}-${l.id}-${index}`}>
+                <TableCell className="font-medium">{l.isFuel ? `F-${l.id}` : `E-${l.id}`}</TableCell>
+                <TableCell>{l.vehicle_id}</TableCell>
+                <TableCell>{l.displayType}</TableCell>
+                <TableCell>{l.displayDate}</TableCell>
+                <TableCell>{l.displayLiters}</TableCell>
+                <TableCell className="font-medium">{l.displayCost}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(l)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <Pagination 
+          currentPage={currentPage} 
+          totalItems={combinedLogs.length} 
+          itemsPerPage={itemsPerPage} 
+          onPageChange={setCurrentPage} 
+        />
       </Card>
 
       <Modal isOpen={isFuelModalOpen} onClose={() => setIsFuelModalOpen(false)} title="Add Fuel Log">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsFuelModalOpen(false); }}>
+        <form className="space-y-4" onSubmit={handleFuelSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
-                <option value="">Select Vehicle</option>
-              </select>
+              <input type="text" value={fuelData.vehicle_id} onChange={(e) => setFuelData({...fuelData, vehicle_id: e.target.value})} placeholder="Vehicle ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="">Select Trip (Optional)</option>
-              </select>
+              <input type="text" value={fuelData.trip_id} onChange={(e) => setFuelData({...fuelData, trip_id: e.target.value})} placeholder="Trip ID (Optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Liters</label>
-              <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" value={fuelData.liters} onChange={(e) => setFuelData({...fuelData, liters: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Cost</label>
-              <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" value={fuelData.cost} onChange={(e) => setFuelData({...fuelData, cost: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Fuel Date</label>
-              <input type="date" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="date" value={fuelData.fuel_date} onChange={(e) => setFuelData({...fuelData, fuel_date: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">
@@ -108,23 +183,19 @@ export function FuelExpense() {
       </Modal>
 
       <Modal isOpen={isExpenseModalOpen} onClose={() => setIsExpenseModalOpen(false)} title="Add Expense">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsExpenseModalOpen(false); }}>
+        <form className="space-y-4" onSubmit={handleExpenseSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Vehicle</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
-                <option value="">Select Vehicle</option>
-              </select>
+              <input type="text" value={expenseData.vehicle_id} onChange={(e) => setExpenseData({...expenseData, vehicle_id: e.target.value})} placeholder="Vehicle ID" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Trip</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                <option value="">Select Trip (Optional)</option>
-              </select>
+              <input type="text" value={expenseData.trip_id} onChange={(e) => setExpenseData({...expenseData, trip_id: e.target.value})} placeholder="Trip ID (Optional)" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Expense Type</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
+              <select value={expenseData.expense_type} onChange={(e) => setExpenseData({...expenseData, expense_type: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required>
                 <option value="Fuel">Fuel</option>
                 <option value="Maintenance">Maintenance</option>
                 <option value="Toll">Toll</option>
@@ -134,15 +205,15 @@ export function FuelExpense() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Amount</label>
-              <input type="number" step="0.01" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="number" step="0.01" value={expenseData.amount} onChange={(e) => setExpenseData({...expenseData, amount: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Expense Date</label>
-              <input type="date" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="date" value={expenseData.expense_date} onChange={(e) => setExpenseData({...expenseData, expense_date: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Description</label>
-              <textarea className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
+              <textarea value={expenseData.description} onChange={(e) => setExpenseData({...expenseData, description: e.target.value})} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" rows="3"></textarea>
             </div>
           </div>
           <div className="pt-4 flex justify-end gap-2 border-t border-slate-100">

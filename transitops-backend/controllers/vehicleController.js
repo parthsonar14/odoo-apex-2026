@@ -155,9 +155,21 @@ const deleteVehicle = async (req, res) => {
     }
 };
 
+// Get available vehicles
+const getAvailableVehicles = async (req, res) => {
+    try {
+        const [vehicles] = await pool.execute("SELECT * FROM Vehicles WHERE status = 'Available' ORDER BY id DESC");
+        res.json(vehicles);
+    } catch (error) {
+        console.error('Error fetching available vehicles:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
 module.exports = {
     createVehicle,
     getVehicles,
+    getAvailableVehicles,
     getVehicleById,
     updateVehicle,
     deleteVehicle

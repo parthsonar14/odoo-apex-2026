@@ -1,20 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../components/ui/Table';
 import { Plus, Search, Edit2, Trash2 } from 'lucide-react';
 import { Modal } from '../components/ui/Modal';
-
-const drivers = [
-  { id: 'D-001', name: 'Rahul Sharma', license: 'GJ-01-2015-123', expiry: '2028-10-15', score: '98/100', status: 'Available' },
-  { id: 'D-002', name: 'Mohan Patel', license: 'GJ-05-2018-456', expiry: '2027-05-20', score: '95/100', status: 'On Trip' },
-  { id: 'D-003', name: 'Alex M', license: 'GJ-02-2019-789', expiry: '2024-01-10', score: '45/100', status: 'Suspended' },
-  { id: 'D-004', name: 'Ramesh Singh', license: 'GJ-27-2020-321', expiry: '2029-12-01', score: '92/100', status: 'Available' },
-];
+import { Pagination } from '../components/ui/Pagination';
+import api from '../api/axiosConfig';
+import { toast } from 'react-toastify';
 
 export function Drivers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [driversData, setDriversData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 8;
+
+  const [formData, setFormData] = useState({
+    full_name: '', license_number: '', license_category: '', license_expiry: '', 
+    contact_number: '', safety_score: '100.00', status: 'Available'
+  });
+
+  const fetchDrivers = async () => {
+    try {
+      const response = await api.get('/drivers');
+      setDriversData(response.data);
+    } catch (error) {
+      toast.error('Failed to load drivers');
+    }
+  };
+
+  useEffect(() => {
+    fetchDrivers();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await api.post('/drivers', formData);
+      toast.success('Driver added successfully!');
+      setIsModalOpen(false);
+      fetchDrivers();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to add driver');
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this driver?')) return;
+    try {
+      await api.delete(`/drivers/${id}`);
+      toast.success('Driver deleted successfully');
+      fetchDrivers();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete driver');
+    }
+  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -24,6 +68,8 @@ export function Drivers() {
       default: return <Badge>{status}</Badge>;
     }
   };
+
+  const paginatedDrivers = driversData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -59,56 +105,62 @@ export function Drivers() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {drivers.map((d) => (
+            {paginatedDrivers.map((d) => (
               <TableRow key={d.id}>
                 <TableCell className="font-medium">{d.id}</TableCell>
-                <TableCell>{d.name}</TableCell>
-                <TableCell>{d.license}</TableCell>
-                <TableCell>{d.expiry}</TableCell>
-                <TableCell>{d.score}</TableCell>
+                <TableCell>{d.full_name}</TableCell>
+                <TableCell>{d.license_number}</TableCell>
+                <TableCell>{d.license_expiry}</TableCell>
+                <TableCell>{d.safety_score}</TableCell>
                 <TableCell>{getStatusBadge(d.status)}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="sm" className="h-8 w-8 p-0"><Edit2 className="h-4 w-4 text-blue-600" /></Button>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
+                    <Button variant="ghost" size="sm" onClick={() => handleDelete(d.id)} className="h-8 w-8 p-0 hover:bg-red-50"><Trash2 className="h-4 w-4 text-red-600" /></Button>
                   </div>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
+        <Pagination 
+          currentPage={currentPage} 
+          totalItems={driversData.length} 
+          itemsPerPage={itemsPerPage} 
+          onPageChange={setCurrentPage} 
+        />
       </Card>
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add Driver">
-        <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2 col-span-2">
               <label className="text-sm font-medium text-slate-700">Full Name</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="full_name" value={formData.full_name} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">License Number</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="text" name="license_number" value={formData.license_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">License Category</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="license_category" value={formData.license_category} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">License Expiry</label>
-              <input type="date" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
+              <input type="date" name="license_expiry" value={formData.license_expiry} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" required />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Contact Number</label>
-              <input type="text" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="text" name="contact_number" value={formData.contact_number} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Safety Score</label>
-              <input type="number" step="0.01" defaultValue="100.00" className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
+              <input type="number" step="0.01" name="safety_score" value={formData.safety_score} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" />
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium text-slate-700">Status</label>
-              <select className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+              <select name="status" value={formData.status} onChange={handleChange} className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
                 <option value="Available">Available</option>
                 <option value="On Trip">On Trip</option>
                 <option value="Off Duty">Off Duty</option>
